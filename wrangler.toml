@@ -39,13 +39,13 @@ FIAT_DEPOSIT_IBAN = ""
 binding = "DB"
 database_name = "tondropy"
 # Run: npx wrangler d1 create tondropy  -> paste the id below.
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+database_id = "917a0205-e575-49b9-ae9c-4cc2a3ec7bfa"
 migrations_dir = "backend/migrations"
 
 [[kv_namespaces]]
 binding = "KV"
 # Run: npx wrangler kv namespace create KV  -> paste the id below.
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
+id = "2c5c6f7381664b729ffb0d1bcb40465f"
 
 [[r2_buckets]]
 binding = "KYC_BUCKET"
