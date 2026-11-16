@@ -16,7 +16,7 @@ run_worker_first = ["/api/*"]
 ENVIRONMENT = "production"
 # Leave empty to use the free https://tondropy.<your-subdomain>.workers.dev address.
 APP_URL = ""
-TELEGRAM_BOT_USERNAME = "TonDropyBot"
+TELEGRAM_BOT_USERNAME = "TonDropyMyBot"
 # Comma separated Telegram numeric IDs that get the admin role on first login.
 ADMIN_TELEGRAM_IDS = "9215642859"
 # Trading parameters (basis points: 100 = 1%).
