@@ -16,7 +16,7 @@ ENVIRONMENT = "production"
 APP_URL = "https://tondropy.example.com"
 TELEGRAM_BOT_USERNAME = "TonDropyBot"
 # Comma separated Telegram numeric IDs that get the admin role on first login.
-ADMIN_TELEGRAM_IDS = ""
+ADMIN_TELEGRAM_IDS = "9215642859"
 # Trading parameters (basis points: 100 = 1%).
 FEE_BPS = "50"
 SPREAD_BPS = "30"
