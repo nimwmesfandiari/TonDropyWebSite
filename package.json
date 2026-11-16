@@ -1,1 +1,22 @@
-
+{
+  "name": "tondropy-exchange",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TonDropy: TON / USDT / Toman exchange on Cloudflare Workers + D1",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "node --test backend/test/*.test.js",
+    "check": "node scripts/check-syntax.mjs",
+    "db:migrate:local": "wrangler d1 migrations apply tondropy --local",
+    "db:migrate:remote": "wrangler d1 migrations apply tondropy --remote",
+    "secrets:set": "node scripts/print-secrets-help.mjs"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

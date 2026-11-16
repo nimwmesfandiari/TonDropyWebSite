@@ -1,1 +1,24 @@
-
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>فروش | تن‌دراپی</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body data-page="sell">
+  <main class="container" style="max-width:520px">
+    <section class="card"><h2>فروش</h2><div id="form"></div></section>
+    <section class="card" style="margin-top:16px"><h3>موجودی</h3><div id="balances"></div></section>
+  </main>
+  <script type="module">
+    import { boot, $ } from "/assets/js/app.js";
+    import { mountTradeForm } from "/assets/js/orders.js";
+    import { renderBalances } from "/assets/js/wallet.js";
+    boot(async () => {
+      mountTradeForm($("#form"), "sell", () => renderBalances($("#balances")));
+      await renderBalances($("#balances"));
+    });
+  </script>
+</body>
+</html>

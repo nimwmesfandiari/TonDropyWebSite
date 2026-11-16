@@ -1,1 +1,58 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>احراز هویت | تن‌دراپی</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body data-page="verification">
+  <main class="container" style="max-width:560px">
+    <section class="card" id="box"><h2>احراز هویت</h2></section>
+  </main>
+  <script type="module">
+    import { boot, $, h, statusBadge, withBusy, toast, fmtDate } from "/assets/js/app.js";
+    import { api } from "/assets/js/api.js";
 
+    function field(label, input, hint) {
+      return h("div", { class: "field" }, h("label", null, label), input, hint ? h("span", { class: "hint" }, hint) : null);
+    }
+
+    boot(async () => {
+      const box = $("#box");
+      const { kycLevel, submission } = await api("/verification");
+      if (kycLevel >= 1) {
+        box.append(h("div", { class: "alert success" }, "حساب شما تایید شده است."));
+        return;
+      }
+      if (submission && submission.status === "pending") {
+        box.append(h("div", { class: "alert info" }, "مدارک شما در حال بررسی است. ", statusBadge("pending")),
+          h("p", { class: "muted small" }, `ارسال‌شده در ${fmtDate(submission.createdAt)}`));
+        return;
+      }
+      if (submission && submission.status === "rejected") {
+        box.append(h("div", { class: "alert danger" }, `درخواست قبلی رد شد: ${submission.rejectReason || ""}`));
+      }
+      const name = h("input", { class: "input", name: "fullName", minlength: "3", maxlength: "80", required: true });
+      const nid = h("input", { class: "input ltr", name: "nationalId", inputmode: "numeric", pattern: "\\d{10}", maxlength: "10", required: true });
+      const birth = h("input", { class: "input ltr", name: "birthDate", type: "date", required: true });
+      const idCard = h("input", { type: "file", name: "idCard", accept: "image/jpeg,image/png,image/webp", required: true });
+      const selfie = h("input", { type: "file", name: "selfie", accept: "image/jpeg,image/png,image/webp", required: true });
+      const btn = h("button", { class: "btn block", type: "submit" }, "ارسال مدارک");
+      const form = h("form", { novalidate: false },
+        h("div", { class: "alert info small" }, "مدارک فقط برای احراز هویت استفاده می‌شود و رمزگذاری‌شده نگهداری می‌گردد. حجم هر تصویر حداکثر ۵ مگابایت."),
+        field("نام و نام خانوادگی", name), field("کد ملی", nid), field("تاریخ تولد", birth),
+        field("تصویر کارت ملی", idCard), field("سلفی همراه کارت ملی", selfie), btn);
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        withBusy(btn, async () => {
+          await api("/verification", { method: "POST", form: new FormData(form) });
+          toast("مدارک ارسال شد", "success");
+          setTimeout(() => location.reload(), 800);
+        });
+      });
+      box.append(form);
+    });
+  </script>
+</body>
+</html>

@@ -1,1 +1,35 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>داشبورد | تن‌دراپی</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body data-page="dashboard">
+  <main class="container stack">
+    <div id="kyc-banner"></div>
+    <div class="grid cols-2">
+      <section class="card"><h2>موجودی‌ها</h2><div id="balances"></div></section>
+      <section class="card"><h2>قیمت‌ها</h2><div id="prices"></div></section>
+    </div>
+    <section class="card"><h2>آخرین معاملات</h2><div id="orders"></div></section>
+  </main>
+  <script type="module">
+    import { boot, $, h } from "/assets/js/app.js";
+    import { mountPriceTable } from "/assets/js/market.js";
+    import { renderBalances } from "/assets/js/wallet.js";
+    import { renderOrders } from "/assets/js/orders.js";
 
+    boot(async (user) => {
+      if (user.kycLevel < 1) {
+        $("#kyc-banner").append(h("div", { class: "alert warning" },
+          "برای خرید، فروش و برداشت باید احراز هویت کنید. ",
+          h("a", { href: "/pages/verification.html" }, "شروع احراز هویت")));
+      }
+      mountPriceTable($("#prices"));
+      await Promise.all([renderBalances($("#balances")), renderOrders($("#orders"), { limit: 5 })]);
+    });
+  </script>
+</body>
+</html>

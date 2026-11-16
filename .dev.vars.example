@@ -1,0 +1,8 @@
+# Copy to .dev.vars for local `wrangler dev`. Never commit .dev.vars.
+JWT_SECRET=change-me-to-a-long-random-string-at-least-32-chars
+TELEGRAM_BOT_TOKEN=123456:replace-with-botfather-token
+TELEGRAM_WEBHOOK_SECRET=change-me-webhook-secret
+TONCENTER_API_KEY=
+# Local only: enables POST /api/v1/auth/dev-login
+ENVIRONMENT=development
+ADMIN_TELEGRAM_IDS=

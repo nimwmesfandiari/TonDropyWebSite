@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <title>مدیریت | تن‌دراپی</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body data-page="admin">
+  <main class="container stack">
+    <section class="card" id="stats"></section>
+    <section class="card">
+      <h2>نرخ USDT به تومان</h2>
+      <div class="row"><input id="rate" class="input ltr" style="max-width:220px" inputmode="decimal" placeholder="مثلا 60000"><button id="rate-btn" class="btn" type="button">ثبت نرخ</button></div>
+    </section>
+    <section class="card">
+      <div class="tabs" id="tabs">
+        <button class="active" data-tab="deposits" type="button">واریزها</button>
+        <button data-tab="withdrawals" type="button">برداشت‌ها</button>
+        <button data-tab="kyc" type="button">احراز هویت</button>
+      </div>
+      <div id="list" style="margin-top:16px"></div>
+    </section>
+  </main>
+  <script type="module">
+    import { boot, $, h, clear, fmt, fmtWithUnit, fmtDate, withBusy, toast, emptyState, showError } from "/assets/js/app.js";
+    import { api } from "/assets/js/api.js";
+
+    let tab = "deposits";
+    const act = (path, body) => api(path, { method: "POST", body: body || {} });
+    const ask = (q) => { const v = prompt(q); return v && v.trim().length >= 3 ? v.trim() : null; };
+
+    async function loadStats() {
+      const s = await api("/admin/stats");
+      const box = $("#stats"); clear(box);
+      box.append(h("h2", null, "نمای کلی"),
+        h("div", { class: "grid cols-3" },
+          h("div", null, h("div", { class: "muted small" }, "کاربران"), h("div", { class: "kpi" }, String(s.users))),
+          h("div", null, h("div", { class: "muted small" }, "در انتظار (واریز / برداشت / احراز)"), h("div", { class: "kpi" }, `${s.pending.deposits} / ${s.pending.withdrawals} / ${s.pending.kyc}`)),
+          h("div", null, h("div", { class: "muted small" }, "موجودی خانه"), ...s.houseBalances.map((b) => h("div", { class: "num" }, fmtWithUnit(b.available, b.asset))))));
+    }
+
+    function btn(label, cls, fn) {
+      return h("button", { class: `btn sm ${cls}`, type: "button", onclick: (e) => withBusy(e.currentTarget, async () => { await fn(); toast("انجام شد", "success"); await render(); loadStats(); }) }, label);
+    }
+
+    async function render() {
+      const list = $("#list"); clear(list);
+      if (tab === "deposits") {
+        const { deposits } = await api("/admin/deposits?status=pending");
+        if (!deposits.length) return list.append(emptyState("موردی نیست."));
+        list.append(...deposits.map((d) => h("div", { class: "asset-row" },
+          h("div", null, h("strong", null, fmtWithUnit(d.amount, d.asset)), h("div", { class: "muted small" }, `@${d.username || d.userId} • پیگیری: ${d.reference || "—"} • ${fmtDate(d.createdAt)}`)),
+          h("div", { class: "row" },
+            btn("تایید", "success", () => act(`/admin/deposits/${d.id}/approve`)),
+            btn("رد", "danger", async () => { const r = ask("دلیل رد؟"); if (!r) throw new Error("دلیل لازم است"); await act(`/admin/deposits/${d.id}/reject`, { reason: r }); })))));
+      } else if (tab === "withdrawals") {
+        const [p, a] = await Promise.all([api("/admin/withdrawals?status=pending"), api("/admin/withdrawals?status=approved")]);
+        const all = [...p.withdrawals, ...a.withdrawals];
+        if (!all.length) return list.append(emptyState("موردی نیست."));
+        list.append(...all.map((w) => h("div", { class: "asset-row" },
+          h("div", null, h("strong", null, fmtWithUnit(w.amount, w.asset)), " ", h("span", { class: "badge" }, w.status),
+            h("div", { class: "mono small" }, w.destination), w.memo ? h("div", { class: "mono small muted" }, `memo: ${w.memo}`) : null,
+            h("div", { class: "muted small" }, `@${w.username || w.userId} • سطح ${w.kycLevel} • ${fmtDate(w.createdAt)}`)),
+          h("div", { class: "row" },
+            w.status === "pending" ? btn("تایید", "success", () => act(`/admin/withdrawals/${w.id}/approve`)) : null,
+            w.status === "approved" ? btn("ثبت ارسال", "", async () => { const t = prompt("هش تراکنش (پس از ارسال واقعی)"); if (!t) throw new Error("هش لازم است"); await act(`/admin/withdrawals/${w.id}/complete`, { txHash: t.trim() }); }) : null,
+            btn("رد", "danger", async () => { const r = ask("دلیل رد؟"); if (!r) throw new Error("دلیل لازم است"); await act(`/admin/withdrawals/${w.id}/reject`, { reason: r }); })))));
+      } else {
+        const { submissions } = await api("/admin/kyc?status=pending");
+        if (!submissions.length) return list.append(emptyState("موردی نیست."));
+        list.append(...submissions.map((k) => h("div", { class: "asset-row" },
+          h("div", null, h("strong", null, `@${k.username || k.user_id}`), h("div", { class: "muted small" }, fmtDate(k.created_at))),
+          h("button", { class: "btn sm secondary", type: "button", onclick: () => openKyc(k.id) }, "بررسی"))));
+      }
+    }
+
+    // Images need the Authorization header, so they are fetched as blobs.
+    async function blobUrl(id, which) {
+      const token = JSON.parse(sessionStorage.getItem("td_session") || "{}").token;
+      const res = await fetch(`/api/v1/admin/kyc/${id}/image?which=${which}`, { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) throw new Error("تصویر بارگذاری نشد");
+      return URL.createObjectURL(await res.blob());
+    }
+
+    async function openKyc(id) {
+      const list = $("#list"); clear(list);
+      const k = await api(`/admin/kyc/${id}`);
+      const [a, b] = await Promise.all([blobUrl(id, "idCard"), blobUrl(id, "selfie")]);
+      list.append(
+        h("button", { class: "btn sm secondary", type: "button", onclick: render }, "← بازگشت"),
+        h("h3", null, k.fullName), h("p", { class: "mono" }, `${k.nationalId} • ${k.birthDate}`),
+        h("div", { class: "grid cols-2" }, h("img", { src: a, alt: "کارت ملی", style: "max-width:100%;border-radius:10px" }), h("img", { src: b, alt: "سلفی", style: "max-width:100%;border-radius:10px" })),
+        h("div", { class: "row", style: "margin-top:16px" },
+          btn("تایید سطح ۱", "success", async () => { await act(`/admin/kyc/${id}/approve`, { level: 1 }); }),
+          btn("رد", "danger", async () => { const r = ask("دلیل رد؟"); if (!r) throw new Error("دلیل لازم است"); await act(`/admin/kyc/${id}/reject`, { reason: r }); })));
+    }
+
+    boot(async () => {
+      document.querySelectorAll("#tabs button").forEach((b) => b.addEventListener("click", () => {
+        tab = b.dataset.tab;
+        document.querySelectorAll("#tabs button").forEach((x) => x.classList.toggle("active", x === b));
+        render().catch(showError);
+      }));
+      $("#rate-btn").addEventListener("click", (e) => withBusy(e.currentTarget, async () => {
+        const v = $("#rate").value.trim();
+        try { await api("/admin/rates", { method: "PUT", body: { usdtIrt: v } }); }
+        catch (err) {
+          if (err.code === "rate_jump" && confirm("تغییر بیش از ۲۰٪ است. مطمئنید؟")) await api("/admin/rates", { method: "PUT", body: { usdtIrt: v, force: true } });
+          else throw err;
+        }
+        toast(`نرخ ${fmt(v, "IRT")} ثبت شد`, "success");
+        loadStats();
+      }));
+      await Promise.all([loadStats(), render()]);
+    }, { admin: true });
+  </script>
+</body>
+</html>
