@@ -1,1 +1,67 @@
+name = "tondropy"
+main = "backend/src/index.js"
+compatibility_date = "2025-09-01"
+compatibility_flags = ["nodejs_compat"]
 
+# Frontend is served as static assets from the same Worker.
+# Only /api/* hits the Worker code first.
+[assets]
+directory = "./frontend"
+binding = "ASSETS"
+not_found_handling = "404-page"
+run_worker_first = ["/api/*"]
+
+[vars]
+ENVIRONMENT = "production"
+APP_URL = "https://tondropy.example.com"
+TELEGRAM_BOT_USERNAME = "TonDropyBot"
+# Comma separated Telegram numeric IDs that get the admin role on first login.
+ADMIN_TELEGRAM_IDS = ""
+# Trading parameters (basis points: 100 = 1%).
+FEE_BPS = "50"
+SPREAD_BPS = "30"
+REFERRAL_BPS = "2000"
+QUOTE_TTL_SECONDS = "30"
+# Hot wallet that receives TON / USDT deposits (public address only, never a key).
+TON_DEPOSIT_ADDRESS = ""
+TON_NETWORK = "mainnet"
+# USDT (TON jetton) master contract address.
+USDT_JETTON_MASTER = ""
+TONCENTER_URL = "https://toncenter.com"
+# Keep "false" until the watcher has been verified on testnet (see docs/checklist.md).
+DEPOSIT_WATCHER_ENABLED = "false"
+# Shown to users who top up toman by card transfer (confirmed manually by an admin).
+FIAT_DEPOSIT_CARD = ""
+FIAT_DEPOSIT_HOLDER = ""
+FIAT_DEPOSIT_IBAN = ""
+
+[[d1_databases]]
+binding = "DB"
+database_name = "tondropy"
+# Run: npx wrangler d1 create tondropy  -> paste the id below.
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+migrations_dir = "backend/migrations"
+
+[[kv_namespaces]]
+binding = "KV"
+# Run: npx wrangler kv namespace create KV  -> paste the id below.
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+[[r2_buckets]]
+binding = "KYC_BUCKET"
+bucket_name = "tondropy-kyc"
+
+[triggers]
+# Prices every minute, deposit watcher every minute, housekeeping every 10 minutes.
+crons = ["* * * * *", "*/10 * * * *"]
+
+[observability]
+enabled = true
+
+# Secrets (never commit). Set with `wrangler secret put <NAME>`:
+#   JWT_SECRET             random 32+ bytes
+#   TELEGRAM_BOT_TOKEN     from @BotFather
+#   TELEGRAM_WEBHOOK_SECRET random string, sent back by Telegram in a header
+#   KYC_ENCRYPTION_KEY     base64 of 32 random bytes (AES-256-GCM for KYC fields)
+#   KYC_HASH_KEY           random string (HMAC blind index for national IDs)
+#   TONCENTER_API_KEY      optional but strongly recommended

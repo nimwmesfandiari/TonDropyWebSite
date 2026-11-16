@@ -1,1 +1,34 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>بازار | تن‌دراپی</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body data-page="market">
+  <main class="container stack">
+    <section class="card">
+      <h2>قیمت‌های لحظه‌ای</h2>
+      <p class="muted small">قیمت‌ها هر ۱۰ ثانیه به‌روز می‌شوند. «خرید از ما» قیمتی است که شما می‌پردازید و «فروش به ما» قیمتی است که دریافت می‌کنید؛ کارمزد جداگانه محاسبه می‌شود.</p>
+      <div id="prices"></div>
+    </section>
+    <section class="card" id="limits"></section>
+  </main>
+  <script type="module">
+    import { boot, $, h, fmt } from "/assets/js/app.js";
+    import { api } from "/assets/js/api.js";
+    import { mountPriceTable } from "/assets/js/market.js";
 
+    boot(async () => {
+      mountPriceTable($("#prices"));
+      const c = await api("/market/config", { auth: false });
+      $("#limits").append(
+        h("h2", null, "کارمزد و محدودیت‌ها"),
+        h("p", null, `کارمزد معامله: ${c.feeBps / 100}٪ از مبلغ`),
+        h("p", null, `حداقل سفارش: ${fmt(String(c.tradeLimits.IRT.min), "IRT")} تومان یا ${c.tradeLimits.USDT.min} USDT`),
+        h("p", null, `سقف هر سفارش (سطح ۱): ${fmt(String(c.tradeLimits.IRT.max[1]), "IRT")} تومان`));
+    }, { public: true });
+  </script>
+</body>
+</html>

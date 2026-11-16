@@ -1,1 +1,34 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>پروفایل | تن‌دراپی</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body data-page="profile">
+  <main class="container stack">
+    <section class="card" id="me"></section>
+    <section class="card" id="referral"></section>
+    <section class="card" id="notifications"></section>
+  </main>
+  <script type="module">
+    import { boot, $, h } from "/assets/js/app.js";
+    import { renderReferral } from "/assets/js/referral.js";
+    import { renderNotifications } from "/assets/js/notifications.js";
+    import { logout } from "/assets/js/auth.js";
 
+    boot(async (user) => {
+      const level = ["تایید نشده", "سطح ۱", "سطح ۲"][user.kycLevel] || "—";
+      $("#me").append(
+        h("h2", null, user.firstName || user.username || "کاربر"),
+        h("div", { class: "row between" }, h("span", null, "احراز هویت"),
+          h("span", null, h("span", { class: `badge ${user.kycLevel ? "success" : "warning"}` }, level), " ",
+            user.kycLevel ? null : h("a", { href: "/pages/verification.html" }, "تکمیل"))),
+        h("div", { class: "row between", style: "margin-top:12px" }, h("span", null, "شناسه کاربری"), h("span", { class: "mono" }, String(user.id))),
+        h("button", { class: "btn secondary", type: "button", style: "margin-top:16px", onclick: logout }, "خروج"));
+      await Promise.all([renderReferral($("#referral")), renderNotifications($("#notifications"))]);
+    });
+  </script>
+</body>
+</html>

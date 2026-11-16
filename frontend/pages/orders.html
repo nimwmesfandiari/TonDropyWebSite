@@ -1,1 +1,19 @@
-
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>سفارش‌ها | تن‌دراپی</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body data-page="orders">
+  <main class="container">
+    <section class="card"><h2>تاریخچه معاملات</h2><div id="orders"></div></section>
+  </main>
+  <script type="module">
+    import { boot, $ } from "/assets/js/app.js";
+    import { renderOrders } from "/assets/js/orders.js";
+    boot(() => renderOrders($("#orders"), { limit: 100 }));
+  </script>
+</body>
+</html>

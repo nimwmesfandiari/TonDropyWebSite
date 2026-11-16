@@ -1,1 +1,13 @@
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes flash-up { 0% { background: var(--success-soft); } 100% { background: transparent; } }
+@keyframes flash-down { 0% { background: var(--danger-soft); } 100% { background: transparent; } }
 
+.spinner { animation: spin 0.7s linear infinite; }
+.card, .toast { animation: fade-up 0.25s ease-out both; }
+.flash-up { animation: flash-up 0.9s ease-out; }
+.flash-down { animation: flash-down 0.9s ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

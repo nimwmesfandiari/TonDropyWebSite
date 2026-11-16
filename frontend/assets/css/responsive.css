@@ -1,1 +1,13 @@
+@media (max-width: 760px) {
+  .grid.cols-2, .grid.cols-3 { grid-template-columns: 1fr; }
+  .hero { padding-top: 32px; }
+  .hero h1 { font-size: 1.6rem; }
+  .app-header .inner { gap: 8px; }
+  .brand span { display: none; }
+  .container { padding-inline: 12px; }
+  .card { padding: 16px; }
+}
 
+@media (min-width: 761px) and (max-width: 1000px) {
+  .grid.cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

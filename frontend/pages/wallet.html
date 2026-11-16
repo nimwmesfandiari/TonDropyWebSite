@@ -1,1 +1,42 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>کیف پول | تن‌دراپی</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body data-page="wallet">
+  <main class="container stack">
+    <section class="card"><h2>موجودی‌ها</h2><div id="balances"></div></section>
+    <section class="card">
+      <div class="tabs" role="tablist" id="tabs">
+        <button class="active" data-tab="deposit" type="button">واریز</button>
+        <button data-tab="fiat" type="button">ثبت واریز تومانی</button>
+        <button data-tab="withdraw" type="button">برداشت</button>
+      </div>
+      <div style="margin-top:16px">
+        <div id="tab-deposit"></div>
+        <div id="tab-fiat" class="hidden"></div>
+        <div id="tab-withdraw" class="hidden"></div>
+      </div>
+    </section>
+    <section class="card"><h2>تاریخچه</h2><div id="history"></div></section>
+  </main>
+  <script type="module">
+    import { boot, $ } from "/assets/js/app.js";
+    import { renderBalances, renderDepositInfo, mountFiatDepositForm, mountWithdrawForm, renderHistory } from "/assets/js/wallet.js";
 
+    boot(async () => {
+      const refresh = () => Promise.all([renderBalances($("#balances")), renderHistory($("#history"), refresh)]);
+      document.querySelectorAll("#tabs button").forEach((b) => b.addEventListener("click", () => {
+        document.querySelectorAll("#tabs button").forEach((x) => x.classList.toggle("active", x === b));
+        for (const t of ["deposit", "fiat", "withdraw"]) $("#tab-" + t).classList.toggle("hidden", t !== b.dataset.tab);
+      }));
+      mountFiatDepositForm($("#tab-fiat"), refresh);
+      mountWithdrawForm($("#tab-withdraw"), refresh);
+      await Promise.all([renderDepositInfo($("#tab-deposit")), refresh()]);
+    });
+  </script>
+</body>
+</html>
