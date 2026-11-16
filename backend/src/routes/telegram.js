@@ -24,9 +24,8 @@ export function register(r) {
             c.env,
             msg.chat.id,
             'به صرافی تن‌دراپی خوش آمدید 👋\nخرید و فروش TON و USDT با تومان، سریع و امن.',
-            c.env.APP_URL
-              ? { reply_markup: { inline_keyboard: [[{ text: 'ورود به صرافی', web_app: { url: c.env.APP_URL } }]] } }
-              : {},
+            // APP_URL is optional: on the free workers.dev domain the Worker's own origin is used.
+            { reply_markup: { inline_keyboard: [[{ text: 'ورود به صرافی', web_app: { url: c.env.APP_URL || c.url.origin } }]] } },
           ),
         );
       }
